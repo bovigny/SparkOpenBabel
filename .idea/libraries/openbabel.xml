@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="openbabel">
+    <CLASSES>
+      <root url="jar:///usr/local/lib/openbabel.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar:///usr/local/lib/openbabel.jar!/" />
+    </SOURCES>
+  </library>
+</component>
