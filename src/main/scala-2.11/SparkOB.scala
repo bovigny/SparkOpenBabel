@@ -24,6 +24,9 @@ object MySimpleApp {
     return numAtoms
 
   }
+
+
+
   // Computation of FP2 Fingerprint  : Return a vector of Unsigned Int
   // FP2 : http://openbabel.org/wiki/FP2
   def computeFP2(File:String): vectorUnsignedInt = {
@@ -46,6 +49,33 @@ object MySimpleApp {
     return vfp
   }
 
+//def compaireFing(molecule:String): Double = {
+  def compareFingerPrint(File: String, molecule:String): Double = {
+    val c = new OBConversion
+    val mol = new OBMol
+    c.SetInFormat("smi")
+    c.ReadString(mol, File)
+
+    val fingerprinter = OBFingerprint.FindFingerprint("FP2")
+    // Define the vector that will contain the fingerprint
+    val mol1 = new OBMol
+    c.ReadString(mol1, molecule)
+
+    val vfpcomp = new vectorUnsignedInt()
+    val vfp = new vectorUnsignedInt()
+    // Compute the fingerprint for each molecule in the input file and return the vfp which is a vectorUnsignedInt
+    fingerprinter.GetFingerprint(mol1, vfpcomp)
+    fingerprinter.GetFingerprint(mol, vfp)
+
+    val tanimoto = OBFingerprint.Tanimoto(vfpcomp, vfp)
+
+
+
+    return tanimoto
+
+  }
+//return compareFingerPrint("test", "CCCCCC")
+//}
 
   def main(args: Array[String]) {
     // cp /usr/lib/jvm/java-1.7.0-openjdk/jre/lib/amd64/xawt/libmawt.so dans /usr/lib/jvm/java-1.7.0-openjdk/jre/lib/amd64/
@@ -60,6 +90,8 @@ object MySimpleApp {
     conf.set("spark.hadoop.validateOutputSpecs", "false")
     // Create a new instance of Spark context
     val sc = new SparkContext(conf)
+    val molecule = "CCCCCCC"
+
     // We put all the files in the RAM Memory : and we split in 8 processes
     val logData = sc.textFile(logFile, 8).cache()
     // Here we compute the number of Carbon in each smiles molecule
@@ -71,8 +103,8 @@ object MySimpleApp {
 
     // Save Vector FingerPrint FP2 in one file (coalesce(1))
     // Be careful, not sure that is the best way to do in term of computation. Coalesce could be really slow.
-    logData.map(computeFP2).map({ x=>  for(i <- 0 to 31) yield (x.get(i).toString)}).coalesce(1).saveAsTextFile("/Users/christophebovigny/awesome/SparkOpenBabel/src/main/resources/out")
-
+   // logData.map(computeFP2).map({ x=>  for(i <- 0 to 31) yield (x.get(i).toString)}).coalesce(1).saveAsTextFile("/Users/christophebovigny/awesome/SparkOpenBabel/src/main/resources/out")
+    logData.map(x=> compareFingerPrint(x,molecule)).coalesce(1).saveAsTextFile("/Users/christophebovigny/awesome/SparkOpenBabel/src/main/resources/out")
 
 
 
